@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "figma-prototype": {
+      "type": "local",
+      "command": ["node", "/ABSOLUTE/PATH/TO/context-figma-mcp/dist/index.js"],
+      "enabled": true,
+      "environment": {
+        "FIGMA_TOKEN": "{env:FIGMA_TOKEN}"
+      }
+    }
+  }
+}

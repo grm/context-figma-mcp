@@ -1,0 +1,48 @@
+{
+  "name": "Account prototype",
+  "version": "42",
+  "lastModified": "2026-10-12T10:00:00Z",
+  "document": {
+    "id": "0:0", "type": "DOCUMENT", "name": "Document", "children": [
+      { "id": "0:1", "type": "CANVAS", "name": "Screens", "flowStartingPoints": [ { "name": "Edit email", "nodeId": "1:1" } ], "children": [
+        { "id": "1:1", "type": "FRAME", "name": "Profile", "children": [
+          { "id": "1:10", "type": "INSTANCE", "name": "Edit email button", "interactions": [
+            { "trigger": { "type": "ON_CLICK" }, "actions": [
+              { "type": "NODE", "destinationId": "1:2", "navigation": { "type": "NAVIGATE" }, "transition": { "type": "DISSOLVE", "duration": 250 } }
+            ] }
+          ] }
+        ] },
+        { "id": "1:2", "type": "FRAME", "name": "Edit email", "children": [
+          { "id": "1:20", "type": "TEXT", "name": "Cancel", "interactions": [
+            { "trigger": { "type": "ON_CLICK" }, "actions": [ { "type": "BACK" } ] }
+          ] },
+          { "id": "1:21", "type": "TEXT", "name": "Save", "interactions": [
+            { "trigger": { "type": "ON_CLICK" }, "actions": [
+              { "type": "CONDITIONAL", "conditionalBlocks": [
+                { "condition": { "type": "BOOLEAN", "value": true }, "actions": [
+                  { "type": "NODE", "destinationId": "1:3", "navigation": { "type": "NAVIGATE" } }
+                ] },
+                { "condition": null, "actions": [
+                  { "type": "NODE", "destinationId": "1:4", "navigation": { "type": "OVERLAY" } }
+                ] }
+              ] }
+            ] }
+          ] },
+          { "id": "1:22", "type": "RECTANGLE", "name": "Legacy hotspot", "transitionNodeID": "1:3" },
+          { "id": "1:23", "type": "TEXT", "name": "Unknown destination", "interactions": [
+            { "trigger": { "type": "ON_CLICK" }, "actions": [
+              { "type": "NODE", "destinationId": "99:99", "navigation": { "type": "NAVIGATE" } }
+            ] }
+          ] }
+        ] },
+        { "id": "1:3", "type": "FRAME", "name": "Confirmation", "children": [
+          { "id": "1:30", "type": "TEXT", "name": "Finish", "interactions": [
+            { "trigger": { "type": "ON_CLICK" }, "actions": [ { "type": "CLOSE" } ] }
+          ] }
+        ] },
+        { "id": "1:4", "type": "FRAME", "name": "Error overlay" },
+        { "id": "1:5", "type": "FRAME", "name": "Unreachable screen" }
+      ] }
+    ]
+  }
+}
