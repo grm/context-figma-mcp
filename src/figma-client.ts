@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import { isAbsolute } from 'node:path';
 import type { FigmaFile } from './types.ts';
 
 /** Accept file keys and canonical Figma links without accepting arbitrary remote hosts. */
@@ -26,9 +28,23 @@ export function parseFigmaNodeId(input: string): string {
 export class FigmaClient {
   private readonly token: string;
   private readonly fetcher: typeof fetch;
-  constructor(token: string, fetcher: typeof fetch = fetch) { this.token = token; this.fetcher = fetcher; }
+  private readonly fixturePath: string;
+  constructor(token: string, fetcher: typeof fetch = fetch, fixturePath = '') {
+    this.token = token;
+    this.fetcher = fetcher;
+    this.fixturePath = fixturePath;
+  }
 
   async getFile(fileKeyOrUrl: string): Promise<FigmaFile> {
+    // Explicit opt-in offline mode. Read from one local, operator-selected fixture.
+    // No Figma token or network access is used in this mode.
+    if (this.fixturePath) {
+      if (!isAbsolute(this.fixturePath)) throw new Error('FIGMA_FIXTURE_PATH must be an absolute path.');
+      let fixture: unknown;
+      try { fixture = JSON.parse(await readFile(this.fixturePath, 'utf8')); }
+      catch { throw new Error('Cannot read or parse FIGMA_FIXTURE_PATH JSON fixture.'); }
+      return validateFigmaFile(fixture);
+    }
     if (!this.token.trim()) throw new Error('Missing FIGMA_TOKEN. Set a personal access token with file_content:read.');
     const key = parseFigmaFileKey(fileKeyOrUrl);
     const controller = new AbortController();
@@ -47,10 +63,7 @@ export class FigmaClient {
         throw new Error(message);
       }
       const result: unknown = await response.json();
-      if (!result || typeof result !== 'object' || !('document' in result) || !('name' in result)) {
-        throw new Error('Unexpected Figma API response: missing document or file name.');
-      }
-      return result as FigmaFile;
+      return validateFigmaFile(result);
     } catch (error) {
       if (controller.signal.aborted) throw new Error('Figma API request timed out after 30 seconds.');
       throw error;
@@ -58,4 +71,13 @@ export class FigmaClient {
       clearTimeout(timer);
     }
   }
+}
+
+function validateFigmaFile(value: unknown): FigmaFile {
+  if (!value || typeof value !== 'object' || !('document' in value) || !('name' in value)
+      || typeof value.name !== 'string' || !value.document || typeof value.document !== 'object'
+      || !('type' in value.document) || value.document.type !== 'DOCUMENT') {
+    throw new Error('Unexpected Figma file JSON: expected a file name and a DOCUMENT root node.');
+  }
+  return value as FigmaFile;
 }
