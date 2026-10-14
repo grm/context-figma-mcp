@@ -29,6 +29,51 @@ export FIGMA_TOKEN
 
 On macOS Terminal, if using zsh, `read -rs` can prompt as shown. Or configure the token securely through your shell's credential manager. The token is never written to files by the MCP.
 
+### Try all MCP tools without a Figma account (offline mode)
+
+The repository includes a **synthetic** Figma REST-shaped JSON fixture with five screens, explicit navigation, a conditional branch, an overlay, a BACK action and a deliberately broken destination. It exercises the actual MCP tool handlers, but does **not** validate Figma API access or compatibility against a live file.
+
+From the repository root:
+
+```bash
+npm install
+npm run build
+npm test
+export FIGMA_FIXTURE_PATH="$(pwd)/test/fixtures/prototype.json"
+npx @modelcontextprotocol/inspector node dist/index.js
+```
+
+In the Inspector, connect, then call these tools using the following test arguments:
+
+| Tool | Arguments |
+| --- | --- |
+| `get_prototype_flows` | `{"fileKey":"offline-demo"}` |
+| `get_prototype_graph` | `{"fileKey":"offline-demo"}` |
+| `get_screen_interactions` | `{"fileKey":"offline-demo","screenNodeId":"1:2"}` |
+
+Expected: `Edit email` flow, 5 screens, conditional transitions and a warning about unresolved destination `99:99`.
+
+To test the same fixture **inside OpenCode**, merge this local MCP entry into your existing OpenCode configuration:
+
+```json
+{
+  "mcp": {
+    "figma-prototype-demo": {
+      "type": "local",
+      "command": ["node", "/ABSOLUTE/PATH/context-figma-mcp/dist/index.js"],
+      "enabled": true,
+      "environment": {
+        "FIGMA_FIXTURE_PATH": "/ABSOLUTE/PATH/context-figma-mcp/test/fixtures/prototype.json"
+      }
+    }
+  }
+}
+```
+
+Then ask OpenCode to invoke `figma-prototype-demo_get_prototype_graph` with `fileKey="offline-demo"`. This does not require `FIGMA_TOKEN`. The `fileKey` parameter is ignored **only in offline mode**; in normal mode, it is validated and used with the Figma API.
+
+Unset `FIGMA_FIXTURE_PATH` and remove the demo MCP entry when you switch to the real Figma service. **Never set this variable in production**, or the server will continue to serve the local fixture instead of live data.
+
 ### OpenCode integration
 
 Add the following to the OpenCode configuration that already contains GLips, changing the absolute executable path:
