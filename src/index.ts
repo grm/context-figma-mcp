@@ -46,7 +46,4 @@ function createServer(): McpServer {
 }
 
 // All protocol messages go to stdout; errors/logging must go to stderr.
-void serveStdio(createServer).catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : 'MCP startup failed');
-  process.exitCode = 1;
-});
+void serveStdio(createServer);
