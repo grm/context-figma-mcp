@@ -80,3 +80,19 @@ test('Figma client sends token as header and handles 403 without leaking token',
   await assert.rejects(client.getFile('AbCd123456'), /Invalid token/);
   assert.equal(requestedUrl, 'https://api.figma.com/v1/files/AbCd123456');
 });
+
+test('offline fixture mode loads prototype without token or network', async () => {
+  const { fileURLToPath } = await import('node:url');
+  const path = fileURLToPath(new URL('./fixtures/prototype.json', import.meta.url));
+  let called = false;
+  const client = new FigmaClient('', async () => { called = true; throw new Error('should never fetch'); }, path);
+  const result = await client.getFile('offline-demo');
+  assert.equal(result.name, 'Account prototype');
+  assert.equal(buildPrototypeGraph(result).stats.flowCount, 1);
+  assert.equal(called, false);
+});
+
+test('offline fixture requires an absolute path', async () => {
+  const client = new FigmaClient('', async () => { throw new Error('should never fetch'); }, './relative.json');
+  await assert.rejects(client.getFile('offline-demo'), /absolute path/);
+});
