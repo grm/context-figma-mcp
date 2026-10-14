@@ -11,7 +11,7 @@ const fail = (error: unknown) => ({ isError: true, content: [{ type: 'text' as c
 
 function createServer(): McpServer {
   const server = new McpServer({ name: 'context-figma-mcp', version: '0.1.0' });
-  const client = new FigmaClient(process.env.FIGMA_TOKEN ?? '');
+  const client = new FigmaClient(process.env.FIGMA_TOKEN ?? '', fetch, process.env.FIGMA_FIXTURE_PATH ?? '');
 
   server.registerTool('get_prototype_flows', {
     description: 'List explicit Figma prototype flow starting points and their pages. Read-only.',
